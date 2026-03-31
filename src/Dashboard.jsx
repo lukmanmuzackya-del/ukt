@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./Dashboard.css";
 
-const API = "http://localhost:5000";
+const API = "http://localhost:5001";
 
 export default function Dashboard({ user, onLogout }) {
   const [products, setProducts] = useState([]);

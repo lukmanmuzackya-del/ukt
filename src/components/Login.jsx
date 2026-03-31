@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function Login({ onLogin }) {
+function Login({ setUser }) {
+  const navigate = useNavigate();
   const [fullname, setFullname] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -9,7 +11,6 @@ function Login({ onLogin }) {
   const handleLogin = async () => {
     setError("");
 
-    // validasi input kosong
     if (!fullname || !password) {
       setError("Username dan password wajib diisi!");
       return;
@@ -18,66 +19,67 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/login", {
+      const response = await fetch("http://localhost:5001/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          fullname: fullname,
-          password: password,
-        }),
+        body: JSON.stringify({ fullname, password }),
       });
 
       const data = await response.json();
 
-      // jika login gagal
       if (!response.ok) {
         setError(data.message || "Username atau password salah!");
         setLoading(false);
         return;
       }
 
-      // simpan token
-      localStorage.setItem("token", data.token);
-
+      // Login sukses
+      setUser(data.user);
       setLoading(false);
-      onLogin(); // ✅ login berhasil
+      navigate("/dashboard");
     } catch (err) {
-      setError("Server tidak dapat dihubungi");
+      console.error("Login error:", err);
+      setError("Server tidak dapat dihubungi. Pastikan backend menyala.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="card">
-      <h1 className="title">Login</h1>
+    <div className="login-box">
+      <h1>Zak Stuff</h1>
+      <p style={{ marginBottom: "15px", color: "#666" }}>Silakan masuk ke akun Anda</p>
 
       {error && (
-        <p style={{ color: "red", marginBottom: "10px" }}>
+        <p style={{ color: "red", backgroundColor: "#ffebeb", padding: "10px", borderRadius: "8px", marginBottom: "15px", fontSize: "14px" }}>
           {error}
         </p>
       )}
 
-      <input
-        type="text"
-        placeholder="Full Name"
-        className="input"
-        value={fullname}
-        onChange={(e) => setFullname(e.target.value)}
-      />
+      <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+        <input
+          type="text"
+          placeholder="Username / Email"
+          value={fullname}
+          onChange={(e) => setFullname(e.target.value)}
+        />
 
-      <input
-        type="password"
-        placeholder="Password"
-        className="input"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-      <button className="btn" onClick={handleLogin} disabled={loading}>
-        {loading ? "Loading..." : "Masuk"}
-      </button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Menghubungkan..." : "Login"}
+        </button>
+      </form>
+
+      <p style={{ marginTop: "15px" }}>
+        Belum punya akun? <button onClick={() => navigate("/register")} style={{ background: "none", color: "#5f6fe8", padding: 0, width: "auto", boxShadow: "none", fontWeight: "bold" }}>Daftar di sini</button>
+      </p>
     </div>
   );
 }
